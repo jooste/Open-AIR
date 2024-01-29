@@ -15,13 +15,16 @@ esphome:
   libraries:
     - Wire
     - u-fire/uFire SHT20@^1.1.1
+    - sht20=https://github.com/jooste/Open-AIR/esphome/components
+  includes:
+    - sht20.h
   project:
     name: "${project_name}"
     version: "${project_version}"
 
-external_components:
-  - source: github://jooste/Open-AIR
-    components: [ sht20 ]
+# external_components:
+#   - source: github://jooste/Open-AIR
+#     components: [ sht20 ]
 
 # Enable logging
 logger:
