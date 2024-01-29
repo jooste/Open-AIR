@@ -15,8 +15,8 @@ esphome:
   libraries:
     - Wire
     - u-fire/uFire SHT20@^1.1.1
-  includes:
-    - sht20.h
+  # includes:
+  #   - sht20.h
   project:
     name: "${project_name}"
     version: "${project_version}"
