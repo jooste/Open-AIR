@@ -1,0 +1,371 @@
+substitutions:
+  name: "open-air-mini"
+  friendly_name: "Open Air Mini"
+  room: ""
+  device_description: "Open Air Mini Central ventilation unit"
+  project_name: "Flamingo Tech.Open Air Mini"
+  project_version: "1.0.0"
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  name_add_mac_suffix: false
+  project:
+    name: "${project_name}"
+    version: "${project_version}"
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# This is optional and can be commented out to disable the Web Server
+web_server:
+  port: 80
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "9f2ab9aa715f573e2476e75a5ec7f4e7"
+
+mdns:
+  disabled: false
+
+wifi:
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Open-AIR-Mini Fallback"
+    password: "ChangeMe@123!"
+
+captive_portal:
+
+dashboard_import:
+  package_import_url: github://jooste/Open-AIR/configs/open-air-mini.yaml
+
+globals:
+  # Humidity thresholds
+  - id: hum_threshold_high
+    type: int
+    initial_value: "75"
+    restore_value: no
+  - id: hum_threshold_medium
+    type: int
+    initial_value: "60"
+    restore_value: no
+  # Humidity thresholds
+  - id: co2_threshold_high
+    type: int
+    initial_value: "1000"
+    restore_value: no
+  - id: co2_threshold_medium
+    type: int
+    initial_value: "750"
+    restore_value: no
+
+    # Fan modes
+  - id: fan_speed_new
+    type: int
+    initial_value: "25"
+    restore_value: no
+
+  - id: fan_hold
+    type: bool
+    initial_value: "false"
+    restore_value: no
+
+  # Fan speed presets
+  - id: fan_speed_low
+    type: int
+    initial_value: "25"
+    restore_value: no
+  - id: fan_speed_medium
+    type: int
+    initial_value: "60"
+    restore_value: no
+  - id: fan_speed_high
+    type: int
+    initial_value: "100"
+    restore_value: no
+
+  # Fan globals
+  - id: fan_button_hold_minutes
+    type: int
+    initial_value: "20"
+    restore_value: no
+  - id: fan_speed_auto
+    type: bool
+    initial_value: "true"
+    restore_value: no
+
+button:
+  - platform: template
+    name: Fan speed low
+    on_press:
+      - script.execute:
+          id: fan_speed_button
+          hold: false
+          speed: !lambda return id(fan_speed_low);
+
+  - platform: template
+    name: Fan speed medium
+    on_press:
+      - script.execute:
+          id: fan_speed_button
+          hold: false
+          speed: !lambda return id(fan_speed_medium);
+
+  - platform: template
+    name: Fan speed high
+    on_press:
+      - script.execute:
+          id: fan_speed_button
+          hold: false
+          speed: !lambda return id(fan_speed_high);
+
+  - platform: template
+    name: Fan speed low hold
+    on_press:
+      - script.execute:
+          id: fan_speed_button
+          hold: true
+          speed: !lambda return id(fan_speed_low);
+
+  - platform: template
+    name: Fan speed medium hold
+    on_press:
+      - script.execute:
+          id: fan_speed_button
+          hold: true
+          speed: !lambda return id(fan_speed_medium);
+
+  - platform: template
+    name: Fan speed high hold
+    on_press:
+      - script.execute:
+          id: fan_speed_button
+          hold: true
+          speed: !lambda return id(fan_speed_high);
+
+binary_sensor:
+  - platform: template
+    name: Fan low mode
+    lambda: return !id(fan_speed_auto) && (id(fan_motor).speed == id(fan_speed_low));
+  - platform: template
+    name: Fan medium mode
+    lambda: return !id(fan_speed_auto) && (id(fan_motor).speed == id(fan_speed_medium));
+  - platform: template
+    name: Fan high mode
+    lambda: return !id(fan_speed_auto) && (id(fan_motor).speed == id(fan_speed_high));
+  - platform: template
+    name: Fan hold
+    lambda: return id(fan_hold);
+
+switch:
+  - platform: template
+    name: Fan auto mode
+    id: fan_auto_mode
+    restore_mode: ALWAYS_ON
+    lambda: return id(fan_speed_auto);
+    turn_on_action:
+      - globals.set:
+          id: fan_speed_auto
+          value: "true"
+      - globals.set:
+          id: fan_hold
+          value: "false"
+    turn_off_action:
+      - globals.set:
+          id: fan_speed_auto
+          value: "false"
+
+#
+uart:
+#UART For Sensor 1
+ - rx_pin: GPIO13
+   tx_pin: GPIO12
+   baud_rate: 9600
+   id: uart_sensor_1
+#UART For Sensor 2
+ - rx_pin: GPIO25
+   tx_pin: GPIO26
+   baud_rate: 9600
+   id: uart_sensor_2
+
+i2c:
+#I2C For Sensor 1
+- id: i2c_sensor_1
+  sda: GPIO19
+  scl: GPIO18
+  scan: false
+  frequency: 400kHz
+#I2C For Sensor 2
+- id: i2c_sensor_2
+  sda: GPIO16
+  scl: GPIO4
+  scan: false
+  frequency: 400kHz
+
+# Status led
+status_led:
+  pin:
+    number: GPIO33
+
+#PWM output for controlling the motor.
+output:
+  - platform: ledc
+    pin: GPIO15
+    inverted: true
+    id: open_air_mini
+
+fan:
+  - platform: speed
+    output: open_air_mini
+    name: "Open AIR Mini"
+    id: fan_motor
+    
+sensor: 
+  - platform: pulse_counter
+    pin: GPIO14
+    unit_of_measurement: 'RPM'
+    name: 'AIR Mini RPM'
+  - platform: custom
+    lambda: |-
+      auto sht20 = new SHT20();
+      App.register_component(sht20);
+      return {sht20->temperature_sensor, sht20->humidity_sensor, sht20->vpd_sensor, sht20->dew_point_sensor};
+    sensors:
+      - name: "Open AIR Mini Sensor 1 Temperature"
+        id: air_temperature_1
+        unit_of_measurement: °C
+        accuracy_decimals: 2
+      - name: "Open AIR Mini Sensor 1 Humidity"
+        id: air_humidity_1
+        unit_of_measurement: "%"
+        accuracy_decimals: 2
+      - name: "Open AIR Mini Sensor 1 Vapour-pressure deficit"
+        id: air_vapor_pressure_deficit_1
+        unit_of_measurement: "kPa"
+        accuracy_decimals: 2
+      - name: "Open AIR Mini Sensor 1 Dew point"
+        id: air_dew_point_1
+        unit_of_measurement: °C
+        accuracy_decimals: 2
+    
+  - platform: scd4x
+    i2c_id: i2c_sensor_2
+    co2:
+      name: "Open AIR Mini Sensor 2 CO2"
+      id: air_co2_2
+      accuracy_decimals: 0
+    temperature:
+      name: "Open AIR Mini Sensor 2 Temperature"
+      id: air_temperature_2
+      accuracy_decimals: 2
+    humidity:
+      name: "Open AIR Mini Sensor 2 Humidity"
+      id: air_humidity_2
+      accuracy_decimals: 2
+    update_interval: 30s
+    measurement_mode: periodic
+
+  - platform: sgp4x
+    i2c_id: i2c_sensor_2
+    voc:
+      name: "VOC Index"
+      id: air_voc_2
+    nox:
+      name: "NOx Index"
+      id: air_nox_2
+    compensation:
+      temperature_source: air_temperature_2
+      humidity_source: air_humidity_2
+    update_interval: 30s
+
+script:
+  - id: fan_speed_button
+    mode: restart
+    parameters:
+      hold: bool
+      speed: int
+    then:
+      - globals.set:
+         id: fan_speed_auto
+         value: "false"
+      - fan.turn_on:
+          id: fan_motor
+          speed: !lambda return speed;
+      - if:
+          condition:
+            not:
+              lambda: |-
+                return hold;
+          then:
+            - globals.set:
+                id: fan_hold
+                value: "false"
+            - delay: !lambda return id(fan_button_hold_minutes) * 1000 * 60;
+            - globals.set:
+                id: fan_speed_auto
+                value: "true"
+          else:
+            - globals.set:
+                id: fan_hold
+                value: "true"
+
+  - id: auto_mode_fan_speed
+    mode: single
+    then:
+      - globals.set:
+          id: fan_speed_new
+          value: !lambda |-
+            // Use ceil() to avoid rapid speed switching on percentage points
+            auto maxhum = ceil(max(id(air_humidity_1).state, id(air_humidity_2).state));
+
+            auto co2 = ceil(id(air_co2_2).state);
+
+            if (maxhum >= id(hum_threshold_high) || co2 >= id(co2_threshold_high)) {
+              return id(fan_speed_high);
+            }
+
+            if (maxhum >= id(hum_threshold_medium) || co2 >= id(co2_threshold_medium)) {
+              return id(fan_speed_medium);
+            }
+            return id(fan_speed_low);
+      - if:
+          condition:
+            not:
+              lambda: return id(fan_motor).speed == id(fan_speed_new);
+          then:
+            - fan.turn_on:
+                id: fan_motor
+                speed: !lambda return id(fan_speed_new);
+
+interval:
+  - interval: 10s
+    then:
+      - if:
+          condition:
+            not:
+              lambda: return id(fan_motor).state;
+          then:
+            - logger.log: Setting default fan speed
+            - fan.turn_on:
+                id: fan_motor
+                speed: !lambda return id(fan_speed_low);
+      - if:
+          condition:
+            lambda: return id(fan_speed_auto);
+          then:
+            - script.execute: auto_mode_fan_speed
+  - interval: 300s
+    then:
+      - logger.log: "API Connectivity Check for Disconnected Mode"
+      - if:
+          condition:
+            not:
+              api.connected:
+          then:
+            - logger.log: "API disconnected. Switching to auto mode"
+            - globals.set:
+                id: fan_speed_auto
+                value: "true"
