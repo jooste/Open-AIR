@@ -15,19 +15,15 @@ esphome:
   libraries:
     - Wire
     - u-fire/uFire SHT20@^1.1.1
-  includes:
-    - sht20.h
+
   project:
     name: "${project_name}"
     version: "${project_version}"
 
-packages:
-  # Git repo examples
-  remote_package: github://jooste/Open-AIR/esphome/configs/SHT20.H
 
-# external_components:
-#   - source: github://jooste/Open-AIR
-#     components: [ sht20 ]
+external_components:
+  - source: github://dmaasland/esphome@sht2x
+    components: [ sht2x ]
 
 # Enable logging
 logger:
@@ -243,28 +239,14 @@ sensor:
     pin: GPIO14
     unit_of_measurement: 'RPM'
     name: 'AIR Mini RPM'
-  - platform: custom
-    lambda: |-
-      auto sht20 = new SHT20();
-      App.register_component(sht20);
-      return {sht20->temperature_sensor, sht20->humidity_sensor, sht20->vpd_sensor, sht20->dew_point_sensor};
-    sensors:
-      - name: "Open AIR Mini Sensor 1 Temperature"
-        id: air_temperature_1
-        unit_of_measurement: °C
-        accuracy_decimals: 2
-      - name: "Open AIR Mini Sensor 1 Humidity"
-        id: air_humidity_1
-        unit_of_measurement: "%"
-        accuracy_decimals: 2
-      - name: "Open AIR Mini Sensor 1 Vapour-pressure deficit"
-        id: air_vapor_pressure_deficit_1
-        unit_of_measurement: "kPa"
-        accuracy_decimals: 2
-      - name: "Open AIR Mini Sensor 1 Dew point"
-        id: air_dew_point_1
-        unit_of_measurement: °C
-        accuracy_decimals: 2
+  - platform: sht2x
+    i2c_id: i2c_sensor_1
+    temperature:
+      name: "Open AIR Mini Sensor 1 Temperature"
+      id: air_temperature_1
+    humidity:
+      name: "Open AIR Mini Sensor 1 Humidity"
+      id: air_humidity_1
     
   - platform: scd4x
     i2c_id: i2c_sensor_2
