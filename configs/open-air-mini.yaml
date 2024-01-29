@@ -15,10 +15,13 @@ esphome:
   libraries:
     - Wire
     - u-fire/uFire SHT20@^1.1.1
-  includes: sht20.h
   project:
     name: "${project_name}"
     version: "${project_version}"
+
+external_components:
+  - source: github://jooste/Open-AIR
+      components: [ configs/SHT20.H ]
 
 # Enable logging
 logger:
