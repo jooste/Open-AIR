@@ -10,6 +10,12 @@ esphome:
   name: "${name}"
   friendly_name: "${friendly_name}"
   name_add_mac_suffix: false
+  platform: ESP32
+  board: esp32dev
+  libraries:
+    - Wire
+    - u-fire/uFire SHT20@^1.1.1
+  includes: sht20.h
   project:
     name: "${project_name}"
     version: "${project_version}"
