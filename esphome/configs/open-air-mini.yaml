@@ -15,15 +15,19 @@ esphome:
   libraries:
     - Wire
     - u-fire/uFire SHT20@^1.1.1
-  # includes:
-  #   - sht20.h
+  includes:
+    - sht20.h
   project:
     name: "${project_name}"
     version: "${project_version}"
 
-external_components:
-  - source: github://jooste/Open-AIR
-    components: [ sht20 ]
+packages:
+  # Git repo examples
+  remote_package: github://jooste/Open-AIR/esphome/configs/SHT20.H
+
+# external_components:
+#   - source: github://jooste/Open-AIR
+#     components: [ sht20 ]
 
 # Enable logging
 logger:
@@ -51,7 +55,7 @@ wifi:
 captive_portal:
 
 dashboard_import:
-  package_import_url: github://jooste/Open-AIR/configs/open-air-mini.yaml
+  package_import_url: github://jooste/Open-AIR/esphome/configs/open-air-mini.yaml
 
 globals:
   # Humidity thresholds
