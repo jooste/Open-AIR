@@ -21,7 +21,6 @@ esphome:
 
 external_components:
   - source: github://jooste/Open-AIR
-    components: [ configs/SHT20.H ]
 
 # Enable logging
 logger:
