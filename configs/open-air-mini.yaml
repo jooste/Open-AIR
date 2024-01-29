@@ -15,7 +15,6 @@ esphome:
   libraries:
     - Wire
     - u-fire/uFire SHT20@^1.1.1
-    - sht20=https://github.com/jooste/Open-AIR/esphome/components
   includes:
     - sht20.h
   project:
