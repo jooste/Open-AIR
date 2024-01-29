@@ -51,7 +51,7 @@ wifi:
 captive_portal:
 
 dashboard_import:
-  package_import_url: github://jooste/Open-AIR/esphome/configs/open-air-mini.yaml
+  package_import_url: github://jooste/Open-AIR/esphome/configs/open-air-mini.yaml@main
 
 globals:
   # Humidity thresholds
